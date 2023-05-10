@@ -20,7 +20,5 @@ class ImageFullActivity : AppCompatActivity() {
         Glide.with(this).load(imagePath)
             .into(binding.fullImage)
 
-
-
     }
 }
