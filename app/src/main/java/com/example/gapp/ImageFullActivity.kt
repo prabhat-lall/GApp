@@ -21,5 +21,6 @@ class ImageFullActivity : AppCompatActivity() {
             .into(binding.fullImage)
 
 
+
     }
 }
