@@ -12,27 +12,32 @@ class ZoomableImageView(context: Context, attrs: AttributeSet? = null) :
 
     private val scaleGestureDetector = ScaleGestureDetector(context, ScaleListener())
     private var scaleFactor = 1.0f
+    private var lastFocusX = 0f
+    private var lastFocusY = 0f
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        scaleGestureDetector.onTouchEvent(event!!)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        scaleGestureDetector.onTouchEvent(event)
         return true
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.save()
-        canvas?.scale(scaleFactor, scaleFactor)
+        canvas?.scale(scaleFactor, scaleFactor, width / 2f, height / 2f)
         super.onDraw(canvas)
         canvas?.restore()
     }
 
-
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+            lastFocusX = detector.focusX
+            lastFocusY = detector.focusY
+            return true
+        }
+
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            detector?.let {
-                scaleFactor *= it.scaleFactor
-                scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 10.0f))
-                invalidate()
-            }
+            scaleFactor *= detector.scaleFactor
+            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 10.0f))
+            invalidate()
             return true
         }
     }

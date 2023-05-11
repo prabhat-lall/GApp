@@ -11,7 +11,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import java.util.zip.Inflater
 
-class ImageAdapter(private val context: Context,private val list: ArrayList<Image>) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
+class ImageAdapter(private val context: Context,private val list: List<Image>) : RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
 
 
 

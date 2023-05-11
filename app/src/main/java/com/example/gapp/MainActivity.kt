@@ -5,31 +5,46 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gapp.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-
-    lateinit var binding: ActivityMainBinding
-    private var allPictures: ArrayList<Image>? = null
-
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var viewModel: GalleryViewModel
+    private lateinit var adapter: ImageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Get the ContentResolver instance
+        val contentResolver = applicationContext.contentResolver
+
+        // Initialize the ViewModel with the ContentResolver
+        viewModel = ViewModelProvider(this, ViewModelFactory(contentResolver)).get(GalleryViewModel::class.java)
+
+        // Observe the result of getAllImages() and set the adapter when the list is available
+        viewModel.getAllImages().observe(this) { allPictures ->
+            if (allPictures.isNotEmpty()) {
+                adapter = ImageAdapter(this, allPictures)
+                binding.imageRecycler.adapter = adapter
+                binding.recyclerProgres.visibility = View.GONE
+            }
+        }
+
         binding.imageRecycler.layoutManager = GridLayoutManager(this, 3)
         binding.imageRecycler.setHasFixedSize(true)
 
-
-        //Storage Permission
+        // Storage Permission
         if (ContextCompat.checkSelfPermission(
                 this@MainActivity,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -42,41 +57,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        allPictures = ArrayList()
-
-        if (allPictures!!.isEmpty()) {
-            binding.recyclerProgres.visibility = View.VISIBLE
-            allPictures = getAllImages()
-            binding.imageRecycler.adapter = ImageAdapter(this, allPictures!!)
-            binding.recyclerProgres.visibility = View.GONE
-
-        }
-
+        binding.recyclerProgres.visibility = View.VISIBLE
     }
 
-    private fun getAllImages(): ArrayList<Image>? {
-        val images = ArrayList<Image>()
-        val allImageUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection = arrayOf(
-            MediaStore.Images.ImageColumns.DATA,
-            MediaStore.Images.ImageColumns.DISPLAY_NAME
-        )
-
-        var cursor = this.contentResolver.query(allImageUri, projection, null, null, null)
-
-        try {
-            cursor!!.moveToFirst()
-            do {
-                val image = Image(
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME))
-                )
-                images.add(image)
-            } while (cursor.moveToNext())
-            cursor.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return images
-    }
 }
